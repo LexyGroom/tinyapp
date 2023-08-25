@@ -5,7 +5,7 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
+  "b2xVn2": "http://www.lighthouselabs.ca", // http://localhost:8080/u/b2xVn2
   "9sm5xK": "http://www.google.com"
 };
 
@@ -37,10 +37,19 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+//example: redirect http://localhost:8080/u/b2xVn2 to its longURL of http://www.lighthouselabs.ca
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  console.log(longURL);
+  res.redirect(longURL);
+});
+
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  generateRandomString();
-  res.send("Ok"); // Respond
+  //console.log(req.body); // Log the POST request body to the console
+  let id = generateRandomString();
+  // save longURL and shortURL to urlDatabase
+  urlDatabase[id] = req.body.longURL
+  res.redirect(`/urls/${id}`)
 });
 
 app.listen(PORT, () => {
@@ -58,4 +67,3 @@ function generateRandomString() {
 
     return result;
 };
-// console.log('Random String: ', generateRandomString())
