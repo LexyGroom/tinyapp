@@ -23,6 +23,7 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+// http://localhost:8080/urls
 app.get("/urls", (req, res) => {
   const templateVars = {urls: urlDatabase};
   res.render("urls_index", templateVars)
@@ -44,18 +45,6 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-app.post("/urls", (req, res) => {
-  //console.log(req.body); // Log the POST request body to the console
-  let id = generateRandomString();
-  // save longURL and shortURL to urlDatabase
-  urlDatabase[id] = req.body.longURL
-  res.redirect(`/urls/${id}`)
-});
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
 // function that returns a string of 6 random alphanumeric numbers
 const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 function generateRandomString() {
@@ -67,3 +56,20 @@ function generateRandomString() {
 
     return result;
 };
+
+app.post("/urls", (req, res) => {
+  //console.log(req.body); // Log the POST request body to the console
+  let id = generateRandomString();
+  // save longURL and shortURL to urlDatabase
+  urlDatabase[id] = req.body.longURL
+  res.redirect(`/urls/${id}`)
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id]
+  res.redirect("/urls/")
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
