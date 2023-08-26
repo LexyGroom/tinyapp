@@ -41,7 +41,6 @@ app.get("/urls/:id", (req, res) => {
 //example: redirect http://localhost:8080/u/b2xVn2 to its longURL of http://www.lighthouselabs.ca
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
-  console.log(longURL);
   res.redirect(longURL);
 });
 
@@ -53,23 +52,30 @@ function generateRandomString() {
     for (let chars = 0; chars < 6; chars++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-
     return result;
 };
 
+// save new longURL and new shortURL to urlDatabase
 app.post("/urls", (req, res) => {
-  //console.log(req.body); // Log the POST request body to the console
   let id = generateRandomString();
-  // save longURL and shortURL to urlDatabase
   urlDatabase[id] = req.body.longURL
   res.redirect(`/urls/${id}`)
 });
 
+// delete URL from the database and return to /urls
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id]
   res.redirect("/urls/")
 });
 
+// 
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  urlDatabase[id] = req.body.newLongURL;
+  res.redirect("/urls/")
+});
+
+// port identification
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`App listening on port ${PORT}!`);
 });
