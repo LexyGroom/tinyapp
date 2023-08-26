@@ -59,20 +59,29 @@ function generateRandomString() {
 app.post("/urls", (req, res) => {
   let id = generateRandomString();
   urlDatabase[id] = req.body.longURL
-  res.redirect(`/urls/${id}`)
+  res.redirect(`/urls/${id}`);
 });
 
-// delete URL from the database and return to /urls
+// delete URL from the database and redirect to /urls
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id]
-  res.redirect("/urls/")
+  res.redirect("/urls");
 });
 
-// 
+// save newURL to database after updating, redirect to /urls
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   urlDatabase[id] = req.body.newLongURL;
-  res.redirect("/urls/")
+  res.redirect("/urls");
+});
+
+// handle post request to /login
+// set a cookie named 'username' to the value submitted in the login form
+  //use res.cookie to set the cookie value
+// redirect to /urls
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
 });
 
 // port identification
