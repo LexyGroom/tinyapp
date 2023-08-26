@@ -97,7 +97,13 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+// clear the username cookie and redirect to /urls
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
+
 // port identification
 app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });

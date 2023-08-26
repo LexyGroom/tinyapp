@@ -20,11 +20,14 @@
       <div class="navbar-nav ml-auto">
         <% if (username) { %>
           <p class="my-auto mr-3">Logged in as: <%= username %>!</p>
-        <% } %>
+          <form class="ml-auto" method="POST" action="/logout">
+          <button type="submit" class="btn btn-dark">Logout</button>
+        <% } else { %>
         <form class="mr-auto" method="POST" action="/login">
           <input type="text" name="username" value="<%= username %>" placeholder="Username">
-          <button type="submit" class="btn btn-primary">Login</button>
+          <button type="submit" class="btn btn-dark">Login</button>
         </form>
+        <% } %>
       </div>
     </div>
   </nav>
