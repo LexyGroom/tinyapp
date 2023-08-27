@@ -10,6 +10,8 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {};
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -29,14 +31,14 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies.username
+    user: users[req.cookies.user_id]
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies.username,
+    user: users[req.cookies.user_id],
   };
   res.render("urls_new", templateVars);
 });
@@ -45,7 +47,7 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = { 
     id: req.params.id, 
     longURL: urlDatabase[req.params.id],
-    username: req.cookies.username,
+    user: users[req.cookies.user_id],
   };
   res.render("urls_show", templateVars);
 });
@@ -73,7 +75,7 @@ function generateRandomString() {
 
 // save new longURL and new shortURL to urlDatabase
 app.post("/urls", (req, res) => {
-  let id = generateRandomString();
+  const id = generateRandomString();
   urlDatabase[id] = req.body.longURL
   res.redirect(`/urls/${id}`);
 });
@@ -91,19 +93,55 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-// handle post request to /login
-// set a cookie named 'username' to the value submitted in the login form
-  //use res.cookie to set the cookie value
+// set a cookie use res.cookie to set the cookie value to the cookie from the login form
 // redirect to /urls
 app.post("/login", (req, res) => {
-  const username = req.body.username;
+  const user = req.body.username;
   res.cookie("username", username);
   res.redirect("/urls");
 });
 
-// clear the username cookie and redirect to /urls
+// clear the cookie and redirect to /urls
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
+  res.redirect("/urls");
+});
+
+// user lookup helper function intake email and output user object or null if not found
+function getUserByEmail(email) {
+  for (const userId in users) {
+    if (users[userId].email === email) {
+      return users[userId];
+    }
+  }
+  return null;
+}
+
+app.post("/register", (req, res) => {
+  const userId = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+
+  // Check for empty email or password
+  if (!email || !password) {
+    return res.status(400).send("Both email and password are required");
+  }
+
+  // Check if email is already registered
+  if (getUserByEmail(email)) {
+    return res.status(400).send("Email already registered");
+  }
+
+  const newUser = {
+    id: userId,
+    email: email,
+    password: password
+};
+
+  users[userId] = newUser;
+
+  res.cookie("user_id", userId);
+  console.log(users)
   res.redirect("/urls");
 });
 
