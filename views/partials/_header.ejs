@@ -18,15 +18,13 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
       <div class="navbar-nav ml-auto">
-        <% if (user) { %>
+        <% if (!user) { %>
+          <a class="nav-item nav-link" href="/register">Register</a>
+          <a class="nav-item nav-link" href="/login">Login</a>
+        <% } else { %>
           <p class="my-auto mr-3">Logged in as: <%= user.email %>!</p>
           <form class="ml-auto" method="POST" action="/logout">
           <button type="submit" class="btn btn-dark">Logout</button>
-        <% } else { %>
-        <form class="mr-auto" method="POST" action="/login">
-          <input type="text" name="email" placeholder="Email">
-          <input type="password" name="passwprd" placeholder="Password">
-          <button type="submit" class="btn btn-dark">Login</button>
         </form>
         <% } %>
       </div>

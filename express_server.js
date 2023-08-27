@@ -62,6 +62,10 @@ app.get("/register", (req, res) => {
   res.render("urls_registration");
 });
 
+app.get("/login", (req, res) => {
+  res.render("urls_login");
+});
+
 // function that returns a string of 6 random alphanumeric numbers
 const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 function generateRandomString() {
