@@ -59,11 +59,17 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  res.render("urls_registration");
+  const templateVars = {
+    user: users[req.cookies.user_id]
+  };
+  res.render("urls_registration", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  res.render("urls_login");
+  const templateVars = {
+    user: users[req.cookies.user_id]
+  };
+  res.render("urls_login", templateVars);
 });
 
 // function that returns a string of 6 random alphanumeric numbers
@@ -80,13 +86,13 @@ function generateRandomString() {
 // save new longURL and new shortURL to urlDatabase
 app.post("/urls", (req, res) => {
   const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL
+  urlDatabase[id] = req.body.longURL;
   res.redirect(`/urls/${id}`);
 });
 
 // delete URL from the database and redirect to /urls
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id]
+  delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
 
@@ -94,20 +100,6 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   urlDatabase[id] = req.body.newLongURL;
-  res.redirect("/urls");
-});
-
-// set a cookie use res.cookie to set the cookie value to the cookie from the login form
-// redirect to /urls
-app.post("/login", (req, res) => {
-  const user = req.body.username;
-  res.cookie("username", username);
-  res.redirect("/urls");
-});
-
-// clear the cookie and redirect to /urls
-app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -119,22 +111,47 @@ function getUserByEmail(email) {
     }
   }
   return null;
-}
+};
+
+// check if already a user, if password is correct, if yes, set the cookie and redirect to /urls 
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = getUserByEmail(email);
+
+  if (!user) {
+    res.status(403).send("Email or password is incorrect.");
+  } else if (user.password !== password) {
+    res.status(403).send("Email or password is incorrect.");
+  } else {
+    res.cookie("user_id", user.id);
+    res.redirect("/urls");
+  }
+});
+
+// clear the cookie and redirect to /urls
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id");
+  res.redirect("/login");
+});
 
 app.post("/register", (req, res) => {
-  const userId = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
 
-  // Check for empty email or password
   if (!email || !password) {
-    return res.status(400).send("Both email and password are required");
+    res.status(403).send("Email and password are required.");
+    return;
   }
 
-  // Check if email is already registered
-  if (getUserByEmail(email)) {
-    return res.status(400).send("Email already registered");
+  const existingUser = getUserByEmail(email);
+
+  if (existingUser) {
+    res.status(403).send("Email already exists. Please use a different email.");
+    return;
   }
+
+  const userId = generateRandomString();
 
   const newUser = {
     id: userId,
