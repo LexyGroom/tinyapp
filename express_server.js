@@ -36,11 +36,16 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// http://localhost:8080/urls/new
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies.user_id) {
+    res.redirect("/login");
+  } else {
   const templateVars = {
     user: users[req.cookies.user_id],
   };
   res.render("urls_new", templateVars);
+  }
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -52,24 +57,39 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// example: redirect http://localhost:8080/u/b2xVn2 to its longURL of http://www.lighthouselabs.ca
+// redirect short URL to longURL
 app.get("/u/:id", (req, res) => {
+  const id = req.params.id;
+  if (!urlDatabase[id]) {
+    res.status(404).send(`${id} does not exist!`);
+    return;
+  }
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
 });
 
+// http://localhost:8080/register
 app.get("/register", (req, res) => {
-  const templateVars = {
-    user: users[req.cookies.user_id]
-  };
-  res.render("urls_registration", templateVars);
+  if (req.cookies.user_id) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = {
+      user: users[req.cookies.user_id]
+    };
+    res.render("urls_registration", templateVars);
+  }
 });
 
+// http://localhost:8080/login
 app.get("/login", (req, res) => {
-  const templateVars = {
-    user: users[req.cookies.user_id]
-  };
-  res.render("urls_login", templateVars);
+  if (req.cookies.user_id) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = {
+      user: users[req.cookies.user_id]
+    };
+    res.render("urls_login", templateVars);
+  }
 });
 
 // function that returns a string of 6 random alphanumeric numbers
@@ -85,6 +105,13 @@ function generateRandomString() {
 
 // save new longURL and new shortURL to urlDatabase
 app.post("/urls", (req, res) => {
+  const user = users[req.cookies.user_id];
+
+  if (!user) {
+    res.status(403).send("You must be logged in to create new URLs.");
+    return;
+  }
+  
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
   res.redirect(`/urls/${id}`);
@@ -160,9 +187,7 @@ app.post("/register", (req, res) => {
 };
 
   users[userId] = newUser;
-
   res.cookie("user_id", userId);
-  console.log(users)
   res.redirect("/urls");
 });
 
