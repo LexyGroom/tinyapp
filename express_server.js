@@ -2,7 +2,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
-const helpers = require("./helpers")
+const helpers = require("./helpers");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -55,10 +55,10 @@ app.get("/urls/new", (req, res) => {
   if (!req.session.user_id) {
     res.redirect("/login");
   } else {
-  const templateVars = {
-    user: users[req.session.user_id],
-  };
-  res.render("urls_new", templateVars);
+    const templateVars = {
+      user: users[req.session.user_id],
+    };
+    res.render("urls_new", templateVars);
   }
 });
 
@@ -74,7 +74,7 @@ app.get("/urls/:id", (req, res) => {
   
   const templateVars = {
     id: id,
-    url: url, 
+    url: url,
     user: user,
   };
 
@@ -177,7 +177,7 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-// check if already a user, if password is correct, if yes, set the cookie and redirect to /urls 
+// check if already a user, if password is correct, if yes, set the cookie and redirect to /urls
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -194,7 +194,7 @@ app.post("/login", (req, res) => {
     res.status(403).send("Email or password is incorrect.");
     return;
   }
-  req.session.user_id = user.id;
+  req.session.userId = user.id;
   res.redirect("/urls");
 });
 
@@ -228,9 +228,9 @@ app.post("/register", (req, res) => {
     id: userId,
     email: email,
     password: hashedPassword
-};
+  };
   users[userId] = newUser;
-  req.session.user_id = userId;
+  req.session.userId = userId;
   res.redirect("/urls");
 });
 
