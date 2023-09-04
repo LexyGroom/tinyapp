@@ -5,7 +5,7 @@ const getUserByEmail = function(email, database) {
       return database[userId];
     }
   }
-  return null;
+  return undefined;
 };
 
 // function that returns a string of 6 random alphanumeric numbers
