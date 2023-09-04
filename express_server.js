@@ -27,7 +27,17 @@ app.use(cookieSession({
   keys: ['secretKey01', 'secretKey02'],
 }));
 
-// http://localhost:8080/urls
+// home page route
+app.get("/", (req, res) => {
+  const user = users[req.session.user_id];
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
+});
+
+// display users urls if logged in
 app.get("/urls", (req, res) => {
   const user = users[req.session.user_id];
   const userUrls = {};
@@ -48,7 +58,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// http://localhost:8080/urls/new
+// route for creating new url
 app.get("/urls/new", (req, res) => {
   if (!req.session.user_id) {
     res.redirect("/login");
@@ -60,6 +70,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+// route for displaying specific url
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
   const user = users[req.session.user_id];
@@ -69,17 +80,22 @@ app.get("/urls/:id", (req, res) => {
     res.status(404).send("URL not found");
     return;
   }
-  
-  const templateVars = {
-    id: id,
-    url: url,
-    user: user,
-  };
 
-  res.render("urls_show", templateVars);
+  if (user && user.id === url.userID) {
+    const templateVars = {
+      user: user,
+      shortURL: id,
+      longURL: url.longURL,
+      url: url,
+      id: id,
+    };
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(403).send("You do not have permission to edit this URL");
+  }
 });
 
-// redirect short URL to longURL
+// redirect short url to long url
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   if (!urlDatabase[id]) {
@@ -90,7 +106,7 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-// http://localhost:8080/register
+// registration page route
 app.get("/register", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
@@ -102,7 +118,7 @@ app.get("/register", (req, res) => {
   }
 });
 
-// http://localhost:8080/login
+// login page route
 app.get("/login", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
@@ -114,7 +130,7 @@ app.get("/login", (req, res) => {
   }
 });
 
-// save new longURL and new shortURL to urlDatabase
+// create new url and add to database
 app.post("/urls", (req, res) => {
   const user = users[req.session.user_id];
 
@@ -131,7 +147,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
-// delete URL from the database and redirect to /urls
+// delete url from the database
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   const user = users[req.session.user_id];
@@ -153,7 +169,7 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-// save newURL to database after updating, redirect to /urls
+// update url in the database
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const user = users[req.session.user_id];
@@ -175,7 +191,7 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-// check if already a user, if password is correct, if yes, set the cookie and redirect to /urls
+// login a user and set cookie
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -196,12 +212,13 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
-// clear the cookie and redirect to /urls
+// logout by clearing the cookie
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/login");
 });
 
+// register a new user and add to database
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
