@@ -11,7 +11,7 @@ const getUserByEmail = function(email, database) {
 // function that returns a string of 6 random alphanumeric numbers
 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const generateRandomString = function() {
-  let result = ' ';
+  let result = '';
   const charactersLength = characters.length;
   for (let chars = 0; chars < 6; chars++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
