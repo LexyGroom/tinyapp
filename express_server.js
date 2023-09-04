@@ -6,8 +6,14 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca", // http://localhost:8080/u/b2xVn2
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {};
@@ -29,10 +35,22 @@ app.get("/hello", (req, res) => {
 
 // http://localhost:8080/urls
 app.get("/urls", (req, res) => {
+  const user = users[req.cookies.user_id];
+  const userUrls = {};
+
+  if (user) {
+    for (const id in urlDatabase) {
+      if (urlDatabase[id].userID === user.id) {
+        userUrls[id] = urlDatabase[id];
+      }
+    }
+  }
+
   const templateVars = {
-    urls: urlDatabase,
-    user: users[req.cookies.user_id]
+    urls: userUrls,
+    user: user,
   };
+  
   res.render("urls_index", templateVars);
 });
 
@@ -49,18 +67,28 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { 
-    id: req.params.id, 
-    longURL: urlDatabase[req.params.id],
-    user: users[req.cookies.user_id],
+  const id = req.params.id;
+  const user = users[req.cookies.user_id];
+  const url = urlDatabase[id];
+
+  if (!url) {
+    res.status(404).send("URL not found");
+    return;
+  }
+  
+  const templateVars = {
+    id: id,
+    url: url, 
+    user: user,
   };
+
   res.render("urls_show", templateVars);
 });
 
 // redirect short URL to longURL
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
-  if (!urlDatabase[id]) {
+  if (!urlDatabase[id].longURL) {
     res.status(404).send(`${id} does not exist!`);
     return;
   }
@@ -113,20 +141,54 @@ app.post("/urls", (req, res) => {
   }
   
   const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
+  urlDatabase[id] = {
+    longURL: req.body.longURL,
+    userID: user.id,
+  };
   res.redirect(`/urls/${id}`);
 });
 
 // delete URL from the database and redirect to /urls
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
+  const id = req.params.id;
+  const user = users[req.cookies.user_id];
+  const url = urlDatabase[id];
+
+  if (!user) {
+    res.status(403).send("You must be logged in to delete URLs.");
+    return;
+  }
+  if (!url) {
+    res.status(404).send("URL not found");
+    return;
+  }
+  if (url.userID !== user.id) {
+    res.status(403).send("You do not have permission to delete this URL.");
+    return;
+  }
+  delete urlDatabase[id];
   res.redirect("/urls");
 });
 
 // save newURL to database after updating, redirect to /urls
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
-  urlDatabase[id] = req.body.newLongURL;
+  const user = users[req.cookies.user_id];
+  const url = urlDatabase[id];
+
+  if (!user) {
+    res.status(403).send("You must be logged in to edit URLs.");
+    return;
+  }
+  if (!url) {
+    res.status(404).send("URL not found");
+    return;
+  }
+  if (url.userID !== user.id) {
+    res.status(403).send("You do not have permission to edit this URL.");
+    return;
+  }
+  url.longURL = req.body.newLongURL;
   res.redirect("/urls");
 });
 
