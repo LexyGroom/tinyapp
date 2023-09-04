@@ -194,7 +194,7 @@ app.post("/login", (req, res) => {
     res.status(403).send("Email or password is incorrect.");
     return;
   }
-  req.session.userId = user.id;
+  req.session.user_id = user.id;
   res.redirect("/urls");
 });
 
@@ -230,7 +230,7 @@ app.post("/register", (req, res) => {
     password: hashedPassword
   };
   users[userId] = newUser;
-  req.session.userId = userId;
+  req.session.user_id = userId;
   res.redirect("/urls");
 });
 
