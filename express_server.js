@@ -2,6 +2,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
+const helpers = require("./helpers")
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -83,11 +84,11 @@ app.get("/urls/:id", (req, res) => {
 // redirect short URL to longURL
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
-  if (!urlDatabase[id].longURL) {
+  if (!urlDatabase[id]) {
     res.status(404).send(`${id} does not exist!`);
     return;
   }
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[id].longURL;
   res.redirect(longURL);
 });
 
@@ -115,17 +116,6 @@ app.get("/login", (req, res) => {
   }
 });
 
-// function that returns a string of 6 random alphanumeric numbers
-const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-function generateRandomString() {
-  let result = ' ';
-    const charactersLength = characters.length;
-    for (let chars = 0; chars < 6; chars++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-};
-
 // save new longURL and new shortURL to urlDatabase
 app.post("/urls", (req, res) => {
   const user = users[req.session.user_id];
@@ -135,7 +125,7 @@ app.post("/urls", (req, res) => {
     return;
   }
   
-  const id = generateRandomString();
+  const id = helpers.generateRandomString();
   urlDatabase[id] = {
     longURL: req.body.longURL,
     userID: user.id,
@@ -187,21 +177,11 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-// user lookup helper function intake email and output user object or null if not found
-function getUserByEmail(email) {
-  for (const userId in users) {
-    if (users[userId].email === email) {
-      return users[userId];
-    }
-  }
-  return null;
-};
-
 // check if already a user, if password is correct, if yes, set the cookie and redirect to /urls 
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const user = getUserByEmail(email);
+  const user = helpers.getUserByEmail(email, users);
 
   if (!user) {
     res.status(403).send("Email or password is incorrect.");
@@ -233,7 +213,7 @@ app.post("/register", (req, res) => {
     return;
   }
 
-  const existingUser = getUserByEmail(email);
+  const existingUser = helpers.getUserByEmail(email, users);
 
   if (existingUser) {
     res.status(403).send("Email already exists. Please use a different email.");
@@ -242,7 +222,7 @@ app.post("/register", (req, res) => {
 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-  const userId = generateRandomString();
+  const userId = helpers.generateRandomString();
 
   const newUser = {
     id: userId,
