@@ -1,5 +1,4 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
 const helpers = require("./helpers");
@@ -23,7 +22,6 @@ const urlDatabase = {
 const users = {};
 
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['secretKey01', 'secretKey02'],
